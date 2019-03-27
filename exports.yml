@@ -1,0 +1,17 @@
+kvdb:
+  attributes: 0
+  version:
+    major: 1
+    minor: 0
+  main:
+    start: module_start
+  modules:
+    vdb_kernel:
+      functions:
+        - vdb_serial_uart
+        - vdb_serial_pipe
+    vdb_user:
+      syscall: true
+      functions:
+        - vdb_serial_uart
+        - vdb_serial_pipe
