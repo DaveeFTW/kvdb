@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.3)
 
+set(CMAKE_CXX_COMPILER_FORCED True)
+
 project(kvdb CXX ASM)
 
 if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
@@ -86,6 +88,7 @@ set(USER_STUBS
 
 add_custom_target(imports ALL
   DEPENDS exports.yml
+  DEPENDS kvdb.skprx
   COMMAND ${VITASDK}/bin/vita-elf-export k kvdb.velf ${CMAKE_CURRENT_SOURCE_DIR}/exports.yml imports.yml
   COMMAND ${VITASDK}/bin/vita-libs-gen imports.yml imports
   BYPRODUCTS ${KERNEL_STUBS} ${USER_STUBS}
