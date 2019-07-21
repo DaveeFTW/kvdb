@@ -157,7 +157,50 @@ extern "C"
     int insn_undef_triggered(excp_saved_ctx *ctx, std::uintptr_t lr, std::uintptr_t spsr)
     {
         LOG("insn_undef_triggered\n");
-        return 0;
+        auto debugger = debugger::get();
+
+        if (!debugger->attached())
+        {
+            return EXCEPTION_NOT_HANDLED;
+        }
+
+        SceKernelFaultingProcessInfo info;
+        ksceKernelGetFaultingProcess(&info); // TODO: check result
+        g_abt_excp_count = reinterpret_cast<std::uint32_t *>(ksceExcpmgrGetData());
+
+        //auto code = ((ctx->ifsr & 0x400) >> 6) | (ctx->ifsr & 0xF);
+
+       // if (code == IFSR_DEBUG_EVENT)
+        {
+            auto target = debugger->target();
+
+            // check if its our process
+            if (target->pid != info.pid)
+            {
+                return EXCEPTION_NOT_HANDLED;
+            }
+
+            target->excpt_tid = info.unk;
+
+            int status = 0;
+            ksceKernelGetProcessStatus(target->pid, &status); // TODO: check result
+
+            ksceKernelChangeThreadSuspendStatus(info.unk, 0x1002); // TODO: check result
+
+            // lets suspend the process for further processing by gdb
+            debugger->halt(0x1C);
+            //ksceKernelSuspendProcess(target->pid, 0x1C); // TODO: check result
+
+            LOG("asdf\n");
+
+            // signal GDB that we have halted
+            debugger->signal(Debugger::Signal::BKPT);
+
+            LOG("asdf2\n");
+            //ksceKernelSetEventFlag(g_gdb_evid, GDB_SIGNAL_BKPT);
+
+            return EXCEPTION_NOT_HANDLED;
+        }
     }
 }
 
