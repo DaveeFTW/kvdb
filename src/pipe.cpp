@@ -29,52 +29,53 @@ namespace
             // open a shared pipe for sending data
             m_tx = ksceKernelCreateMsgPipe("vdb-pipe-tx", 0, 4 | 8 | 0x80, 0x2000, nullptr);
 
-            m_rx_mtx = ksceKernelCreateMutex("vdb-pipe-rx-mutex", 0, 0, nullptr);
-            m_tx_mtx = ksceKernelCreateMutex("vdb-pipe-tx-mutex", 0, 0, nullptr);
-            
             // create a thread to call the msg pipe API
             auto thid = ksceKernelCreateThread("kvdb", pipe_thread_entry, 0x40, 0x1000, 0, 0, nullptr);
             auto class_ptr = this;
-            ksceKernelStartThread(thid, sizeof(class_ptr), &class_ptr);
+            //ksceKernelStartThread(thid, sizeof(class_ptr), &class_ptr);
         }
 
         int get() override
         {
-            ksceKernelLockMutex(m_rx_mtx, 1, nullptr);
-
             if (!m_rx_len)
             {
-                m_flag.set(Op::Get);
-                m_flag.waitFor(Op::GetComplete, true);
+                MsgPipeRecvData data;
+                data.message = m_rx_buf;
+                data.size = sizeof(m_rx_buf);
+                m_rx_ptr = m_rx_buf;
+
+                // TODO: check return
+                auto timeout = 0u;
+                m_rx_msg = ksceKernelReceiveMsgPipeVector(m_rx, &data, 1, 0, &m_rx_len, &timeout);
 
                 if (m_rx_msg < 0)
                 {
-                    ksceKernelUnlockMutex(m_rx_mtx, 1);
                     return m_rx_msg;
                 }
 
                 if (!m_rx_len)
                 {
-                    ksceKernelUnlockMutex(m_rx_mtx, 1);
                     return -1;
                 }
             }
 
             --m_rx_len;
             auto r = *m_rx_ptr++;
-            ksceKernelUnlockMutex(m_rx_mtx, 1);
             return r;
         }
 
         void put(int ch) override
         {
-            ksceKernelLockMutex(m_tx_mtx, 1, nullptr);
             m_tx_msg = ch;
             //LOG("req put\n");
-            m_flag.set(Op::Put);
-            m_flag.waitFor(Op::PutComplete, true);
+            MsgPipeSendData data;
+            data.message = &m_tx_msg;
+            data.size = 1;
+
+            // TODO: check return
+            auto res = ksceKernelSendMsgPipeVector(m_tx, &data, 1, 1, nullptr, nullptr);
+            
             //LOG("wait put done\n");
-            ksceKernelUnlockMutex(m_tx_mtx, 1);
         }
 
     private:

@@ -67,11 +67,10 @@ int EventFlag::pollFor(unsigned int value, bool clear, unsigned int *pattern)
     }
 
     auto patternInt = 0u;
-    auto timeout = 0u;
-    LOG("begin poll\n");
+    SceUInt timeout = 0u;
+    
     auto res = ksceKernelWaitEventFlag(m_evid, value, SCE_EVENT_WAITAND | SCE_EVENT_WAITCLEAR, &patternInt, &timeout);
 
-    LOG("end poll 0x%08X\n", res);
     if (res < 0)
     {
         return res;
