@@ -1,0 +1,10 @@
+// See https://aka.ms/vscode-remote/devcontainer.json for format details.
+{
+    "name": "VitaSDK Samples",
+    "image": "daveeftw/vitasdk:libk",
+    "appPort": 8091,
+    "extensions": [
+        "vector-of-bool.cmake-tools",
+        "twxs.cmake"
+    ]
+}
