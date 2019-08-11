@@ -34,6 +34,11 @@ namespace
 
         void put(int ch) override
         {
+            if (ch == '\n')
+            {
+                ksceUartWrite(port, '\r');
+            }
+
             ksceUartWrite(port, ch);
         }
     };
