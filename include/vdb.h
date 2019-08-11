@@ -29,6 +29,8 @@ extern "C"
 {
 #endif // __cplusplus
 
+#include <stdint.h>
+
 /**
  * @brief instruct vdb to use UART for its communications
  */
@@ -38,6 +40,10 @@ void vdb_serial_uart();
  * @brief instruct vdb to use pipes for its communications
  */
 void vdb_serial_pipe();
+
+int vdb_send_serial_pipe(const char *data, size_t size);
+
+int vdb_recv_serial_pipe(char *data, size_t max_size, int timeout);
 
 #ifdef __cplusplus
 }

@@ -3,7 +3,7 @@
 
 #include <psp2kern/kernel/threadmgr.h>
 
-EventFlag::EventFlag(const char * &&name)
+EventFlag::EventFlag(const char *name)
 {
     // TODO: handle error
     m_evid = ksceKernelCreateEventFlag(name, 0, 0, nullptr);
@@ -11,10 +11,15 @@ EventFlag::EventFlag(const char * &&name)
 
 int EventFlag::waitFor(unsigned int value, unsigned int *pattern)
 {
-    return waitFor(value, true, pattern);
+    return waitFor(value, true, pattern, nullptr);
 }
 
 int EventFlag::waitFor(unsigned int value, bool clear, unsigned int *pattern)
+{
+    return waitFor(value, true, pattern, nullptr);
+}
+
+int EventFlag::waitFor(unsigned int value, bool clear, unsigned int *pattern, unsigned int *timeout)
 {
     unsigned int flags = SCE_EVENT_WAITAND;
 
@@ -24,7 +29,7 @@ int EventFlag::waitFor(unsigned int value, bool clear, unsigned int *pattern)
     }
 
     auto patternInt = 0u;
-    auto res = ksceKernelWaitEventFlag(m_evid, value, flags, &patternInt, nullptr);
+    auto res = ksceKernelWaitEventFlag(m_evid, value, flags, &patternInt, timeout);
 
     if (res < 0)
     {

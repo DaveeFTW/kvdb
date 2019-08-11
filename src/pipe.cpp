@@ -2,6 +2,7 @@
 #include "serial.h"
 #include "serial_impl.h"
 #include "eventflag.h"
+#include "pipecache.h"
 
 #include "log.h"
 
@@ -22,17 +23,9 @@ namespace
     public:
         Pipe()
             : m_flag("vdb-pipe-flag")
+            , m_tx("vdb-pipe-tx")
+            , m_rx("vdb-pipe-rx")
         {
-            // open a shared pipe for receiving data
-            m_rx = ksceKernelCreateMsgPipe("vdb-pipe-rx", 0, 4 | 8 | 0x80, 0x2000, nullptr);
-
-            // open a shared pipe for sending data
-            m_tx = ksceKernelCreateMsgPipe("vdb-pipe-tx", 0, 4 | 8 | 0x80, 0x2000, nullptr);
-
-            // create a thread to call the msg pipe API
-            auto thid = ksceKernelCreateThread("kvdb", pipe_thread_entry, 0x40, 0x1000, 0, 0, nullptr);
-            auto class_ptr = this;
-            //ksceKernelStartThread(thid, sizeof(class_ptr), &class_ptr);
         }
 
         int get() override
@@ -44,9 +37,8 @@ namespace
                 data.size = sizeof(m_rx_buf);
                 m_rx_ptr = m_rx_buf;
 
-                // TODO: check return
-                auto timeout = 0u;
-                m_rx_msg = ksceKernelReceiveMsgPipeVector(m_rx, &data, 1, 0, &m_rx_len, &timeout);
+                // timeout of 1 to peek
+                m_rx_msg = m_rx.read(m_rx_buf, sizeof(m_rx_buf), 1);
 
                 if (m_rx_msg < 0)
                 {
@@ -73,63 +65,29 @@ namespace
             data.size = 1;
 
             // TODO: check return
-            auto res = ksceKernelSendMsgPipeVector(m_tx, &data, 1, 1, nullptr, nullptr);
-            
+            m_tx.write(reinterpret_cast<const char *>(&m_tx_msg), 1);
             //LOG("wait put done\n");
         }
 
+        int copyin(std::uintptr_t udata, std::size_t size)
+        {
+            return m_rx.copyin(udata, size);
+        }
+
+        int copyout(std::uintptr_t udata, std::size_t max_size, int timeout)
+        {
+            return m_tx.copyout(udata, max_size, timeout);
+        }
+
     private:
-        void io_loop()
-        {
-            while (1)
-            {
-                auto op = 0u;
-                m_flag.waitForAny(Op::Get | Op::Put, &op);
-
-                if (op & Op::Get)
-                {
-                    MsgPipeRecvData data;
-                    data.message = m_rx_buf;
-                    data.size = sizeof(m_rx_buf);
-                    m_rx_ptr = m_rx_buf;
-
-                    // TODO: check return
-                    auto timeout = 0u;
-                    m_rx_msg = ksceKernelReceiveMsgPipeVector(m_rx, &data, 1, 0, &m_rx_len, &timeout);
-                    m_flag.set(Op::GetComplete);
-                }
-                
-                if (op & Op::Put)
-                {
-                    MsgPipeSendData data;
-                    data.message = &m_tx_msg;
-                    data.size = 1;
-
-                    // TODO: check return
-                    auto res = ksceKernelSendMsgPipeVector(m_tx, &data, 1, 1, nullptr, nullptr);
-                    //LOG("writing pipe data: 0x%08X\n", res);
-                    m_flag.set(Op::PutComplete);
-                }
-            }
-        }
-
-        static int pipe_thread_entry(SceSize args, void *argp)
-        {
-            auto class_ptr = reinterpret_cast<Pipe **>(argp);
-            (*class_ptr)->io_loop();
-            return 0;
-        }
-
-        SceUID m_rx = -1;
-        SceUID m_tx = -1;
-        SceUID m_rx_mtx = -1;
-        SceUID m_tx_mtx = -1;
         char m_rx_buf[0x2000];
         int m_rx_len = 0;
         char *m_rx_ptr = m_rx_buf;
         int m_tx_msg = 0;
         int m_rx_msg = 0;
         EventFlag m_flag;
+        PipeCache m_tx;
+        PipeCache m_rx;
     };
 
     Pipe *get()
@@ -150,5 +108,15 @@ namespace pipe
     void use()
     {
         serial::set_device(get());
+    }
+
+    int copyin(std::uintptr_t udata, std::size_t size)
+    {
+        return get()->copyin(udata, size);
+    }
+
+    int copyout(std::uintptr_t udata, std::size_t max_size, int timeout)
+    {
+        return get()->copyout(udata, max_size, timeout);
     }
 }

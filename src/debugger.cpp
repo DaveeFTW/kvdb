@@ -243,7 +243,7 @@ int Debugger::on_putchar(char ch)
     {
         hex_data[0] = 'O';
         hex::to_string(hex_data+1, m_stdout_cache, m_stdout_cache_indx);
-        //rsp::write(hex_data, strlen(hex_data));
+        rsp::write(hex_data, strlen(hex_data));
         LOG("got text: \"%s\"\n", hex_data);
         m_stdout_cache_indx = 0;
     }

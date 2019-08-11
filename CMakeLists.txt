@@ -31,6 +31,7 @@ add_executable(kvdb
   src/cache.cpp
   src/services.cpp
   src/eventflag.cpp
+  src/pipecache.cpp
   src/commands/qsupported.cpp
   src/commands/haltreason.cpp
   src/commands/readregister.cpp

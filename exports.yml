@@ -15,3 +15,5 @@ kvdb:
       functions:
         - vdb_serial_uart
         - vdb_serial_pipe
+        - vdb_send_serial_pipe
+        - vdb_recv_serial_pipe
