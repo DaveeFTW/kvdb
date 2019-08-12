@@ -30,30 +30,15 @@ namespace
 
         int get() override
         {
-            if (!m_rx_len)
+            char ch = 0;
+            auto res = m_rx.read(&ch, 1, 1);
+
+            if (res < 0)
             {
-                MsgPipeRecvData data;
-                data.message = m_rx_buf;
-                data.size = sizeof(m_rx_buf);
-                m_rx_ptr = m_rx_buf;
-
-                // timeout of 1 to peek
-                m_rx_msg = m_rx.read(m_rx_buf, sizeof(m_rx_buf), 1);
-
-                if (m_rx_msg < 0)
-                {
-                    return m_rx_msg;
-                }
-
-                if (!m_rx_len)
-                {
-                    return -1;
-                }
+                return res;
             }
 
-            --m_rx_len;
-            auto r = *m_rx_ptr++;
-            return r;
+            return ch & 0xFF;
         }
 
         void put(int ch) override

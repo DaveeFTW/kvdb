@@ -17,8 +17,8 @@ namespace
 PipeCache::PipeCache(const char *name, std::size_t size)
     : m_flag(name)
     , m_size(size)
-    , m_mutex(ksceKernelCreateMutex(name, 0, 0, nullptr))
 {
+    ksceKernelInitializeFastMutex(&m_mutex, name, 0, 0);
     m_memid = ksceKernelAllocMemBlock(name, SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RW, size, nullptr);
 
     if (m_memid < 0)
@@ -52,7 +52,12 @@ int PipeCache::copyin(std::uintptr_t udata, size_t size)
 
 std::size_t PipeCache::size() const
 {
-    return m_size;
+    if (m_start_ptr <= m_end_ptr)
+    {
+        return m_end_ptr - m_start_ptr;
+    }
+
+    return (m_size - m_start_ptr) + m_end_ptr;
 }
 
 template <typename F, typename Ptr>
@@ -73,7 +78,7 @@ int PipeCache::do_read(F f, Ptr data, std::size_t max_size, unsigned int timeout
         return res;
     }
 
-    ksceKernelLockMutex(m_mutex, 1, nullptr);
+    ksceKernelLockFastMutex(&m_mutex);
 
     auto size = this->size();
 
@@ -87,24 +92,30 @@ int PipeCache::do_read(F f, Ptr data, std::size_t max_size, unsigned int timeout
         m_flag.clear(DataAvailable);
     }
 
-    ksceKernelUnlockMutex(m_mutex, 1);  
-    return 0;  
+    ksceKernelUnlockFastMutex(&m_mutex);  
+    return size;  
 }
 
 template <typename F, typename Ptr>
 int PipeCache::do_write(F f, Ptr data, std::size_t size)
 {
-    ksceKernelLockMutex(m_mutex, 1, nullptr);
+    ksceKernelLockFastMutex(&m_mutex);
 
     // check if this new data will fit in our cache
     if (this->size() + size > m_size)
     {
-        ksceKernelUnlockMutex(m_mutex, 1);
+        ksceKernelUnlockFastMutex(&m_mutex);
         return -1;
     }
 
     write_cache(f, data, size);
-    ksceKernelUnlockMutex(m_mutex, 1);
+
+    if (this->size()) 
+    {
+        m_flag.set(DataAvailable);
+    }
+
+    ksceKernelUnlockFastMutex(&m_mutex);
     return 0;
 }
 
@@ -127,7 +138,7 @@ void PipeCache::read_cache(F f, Ptr data, std::size_t size)
         f(data, &m_base[m_start_ptr], size);
     }
 
-    m_start_ptr =  (m_start_ptr + size) % m_size;
+    m_start_ptr = (m_start_ptr + size) % m_size;
 }
 
 template <typename F, typename Ptr>
@@ -149,5 +160,5 @@ void PipeCache::write_cache(F f, Ptr data, std::size_t size)
         f(&m_base[m_end_ptr], data, size);
     }
 
-    m_end_ptr =  (m_end_ptr + size) % m_size;
+    m_end_ptr = (m_end_ptr + size) % m_size;
 }

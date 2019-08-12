@@ -234,6 +234,11 @@ int Debugger::on_putchar(char ch)
         return 0;
     }
 
+    if (ksceKernelGetProcessId() != m_target.pid)
+    {
+        return 0;
+    }
+
     char hex_data[sizeof(m_stdout_cache)*2 + 2];
 
     m_stdout_cache[m_stdout_cache_indx++] = ch;
@@ -244,7 +249,6 @@ int Debugger::on_putchar(char ch)
         hex_data[0] = 'O';
         hex::to_string(hex_data+1, m_stdout_cache, m_stdout_cache_indx);
         rsp::write(hex_data, strlen(hex_data));
-        LOG("got text: \"%s\"\n", hex_data);
         m_stdout_cache_indx = 0;
     }
 

@@ -85,6 +85,8 @@ set(KERNEL_STUBS
 set(USER_STUBS
   imports/kvdb_vdb_user_vdb_serial_uart.S
   imports/kvdb_vdb_user_vdb_serial_pipe.S
+  imports/kvdb_vdb_user_vdb_send_serial_pipe.S
+  imports/kvdb_vdb_user_vdb_recv_serial_pipe.S
 )
 
 add_custom_target(imports ALL

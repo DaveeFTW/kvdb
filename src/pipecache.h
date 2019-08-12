@@ -2,6 +2,8 @@
 
 #include "eventflag.h"
 
+#include <psp2kern/kernel/threadmgr.h>
+
 #include <cstdint>
 
 class PipeCache
@@ -36,7 +38,7 @@ private:
     std::size_t m_size = 0u;
     std::size_t m_start_ptr = 0u;
     std::size_t m_end_ptr = 0u;
-    int m_mutex = -1;
+    SceKernelLwMutexWork m_mutex;
     int m_memid = -1;
     char *m_base = nullptr;
 };

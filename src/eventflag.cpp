@@ -96,5 +96,5 @@ int EventFlag::set(unsigned int value)
 
 int EventFlag::clear(unsigned int value)
 {
-    return ksceKernelClearEventFlag(m_evid, value);
+    return ksceKernelClearEventFlag(m_evid, ~value);
 }
