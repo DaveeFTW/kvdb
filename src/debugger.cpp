@@ -229,13 +229,10 @@ int Debugger::on_process_created_handler()
 
 int Debugger::on_putchar(char ch)
 {
-    if (m_state != State::Running)
+    if (m_state != State::Running || ksceKernelGetProcessId() != m_target.pid)
     {
-        return 0;
-    }
-
-    if (ksceKernelGetProcessId() != m_target.pid)
-    {
+        char str[2] = { ch, 0 };
+        uart::printf(str);
         return 0;
     }
 

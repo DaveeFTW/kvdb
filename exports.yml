@@ -10,6 +10,7 @@ kvdb:
       functions:
         - vdb_serial_uart
         - vdb_serial_pipe
+        - vdb_launch_debug
     vdb_user:
       syscall: true
       functions:
@@ -17,3 +18,4 @@ kvdb:
         - vdb_serial_pipe
         - vdb_send_serial_pipe
         - vdb_recv_serial_pipe
+        - vdb_launch_debug

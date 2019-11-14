@@ -23,13 +23,6 @@ namespace
         debugger::get()->start();
         return 0;
     }
-
-    int test(SceSize args, void *argp)
-    {
-        ksceKernelDelayThread(20*1000*1000);
-        launch::for_debug("ux0:data/eboot.bin");
-        return 0;
-    }
 }
 
 extern "C" void __cxa_pure_virtual() { while (1); }
@@ -39,10 +32,6 @@ extern "C" int module_start()
     // TODO: handle returns for this
     auto thid = ksceKernelCreateThread("kvdb", init, 0x40, 0x8000, 0, 0, nullptr);
     ksceKernelStartThread(thid, 0, nullptr);
-
-    // test launcher
-    auto thid2 = ksceKernelCreateThread("kvdb2", test, 0x40, 0x8000, 0, 0, nullptr);
-    ksceKernelStartThread(thid2, 0, nullptr);
     return 0;
 }
 

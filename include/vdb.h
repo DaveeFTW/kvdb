@@ -45,6 +45,8 @@ int vdb_send_serial_pipe(const char *data, size_t size);
 
 int vdb_recv_serial_pipe(char *data, size_t max_size, int timeout);
 
+int vdb_launch_debug(const char *executable);
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus
