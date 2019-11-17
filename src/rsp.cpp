@@ -72,7 +72,7 @@ namespace rsp
                 out[i] = '\0';
                 serial::put(RSP_ACCEPT);
 
-                LOG("rsp < (\"%s\"): 0x%08X\n", out, i);
+                //LOG("rsp < (\"%s\"): 0x%08X\n", out, i);
                 return 0;
             }
 
@@ -86,7 +86,7 @@ namespace rsp
 
     int write(const char *data, std::size_t size)
     {
-        LOG("rsp > (\"%s\"): 0x%08X\n", data, size);
+        //LOG("rsp > (\"%s\"): 0x%08X\n", data, size);
 
         serial::put(RSP_START_TOKEN);
 
