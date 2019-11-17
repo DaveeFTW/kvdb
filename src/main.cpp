@@ -12,8 +12,6 @@ namespace
 {
     int init(SceSize args, void *argp)
     {
-        ksceIoRemove("ux0:tai/kvdb.skprx");
-
         pipe::init();
         uart::init();
         uart::use();
