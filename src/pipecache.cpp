@@ -18,7 +18,7 @@ PipeCache::PipeCache(const char *name, std::size_t size)
     : m_flag(name)
     , m_size(size)
 {
-    ksceKernelInitializeFastMutex(&m_mutex, name, 0, 0);
+    m_mutex = ksceKernelCreateMutex(name, 0, 0, nullptr);
     m_memid = ksceKernelAllocMemBlock(name, SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RW, size, nullptr);
 
     if (m_memid < 0)
@@ -78,7 +78,7 @@ int PipeCache::do_read(F f, Ptr data, std::size_t max_size, unsigned int timeout
         return res;
     }
 
-    ksceKernelLockFastMutex(&m_mutex);
+    ksceKernelLockMutex(m_mutex, 1, nullptr);
 
     auto size = this->size();
 
@@ -92,19 +92,19 @@ int PipeCache::do_read(F f, Ptr data, std::size_t max_size, unsigned int timeout
         m_flag.clear(DataAvailable);
     }
 
-    ksceKernelUnlockFastMutex(&m_mutex);  
+    ksceKernelUnlockMutex(m_mutex, 1);  
     return size;  
 }
 
 template <typename F, typename Ptr>
 int PipeCache::do_write(F f, Ptr data, std::size_t size)
 {
-    ksceKernelLockFastMutex(&m_mutex);
+    ksceKernelLockMutex(m_mutex, 1, nullptr);
 
     // check if this new data will fit in our cache
     if (this->size() + size > m_size)
     {
-        ksceKernelUnlockFastMutex(&m_mutex);
+        ksceKernelUnlockMutex(m_mutex, 1);
         return -1;
     }
 
@@ -115,7 +115,7 @@ int PipeCache::do_write(F f, Ptr data, std::size_t size)
         m_flag.set(DataAvailable);
     }
 
-    ksceKernelUnlockFastMutex(&m_mutex);
+    ksceKernelUnlockMutex(m_mutex, 1);
     return 0;
 }
 
