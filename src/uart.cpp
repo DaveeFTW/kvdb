@@ -22,7 +22,7 @@ namespace
             ksceUartInit(port);
         }
 
-        int get() override
+        int get() final
         {
             if (!ksceUartReadAvailable(port))
             {
@@ -32,7 +32,7 @@ namespace
             return ksceUartRead(port);
         }
 
-        void put(int ch) override
+        void put(int ch) final
         {
             if (ch == '\n')
             {
@@ -70,11 +70,11 @@ namespace uart
         static char buffer[0x1000];
 
         va_start(args, fmt);
-        vsprintf(buffer, fmt, args);
+        vsnprintf(buffer, sizeof(buffer), fmt, args);
         va_end(args);
 
-        auto len = strlen(buffer);
         auto uart = get<0>();
+        auto len = strlen(buffer);
 
         for (auto i = 0u; i < len; ++i)
         {
