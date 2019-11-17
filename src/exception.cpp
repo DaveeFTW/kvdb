@@ -134,12 +134,9 @@ extern "C"
             debugger->halt(0x1C);
             //ksceKernelSuspendProcess(target->pid, 0x1C); // TODO: check result
 
-            LOG("asdf\n");
-
             // signal GDB that we have halted
             debugger->signal(Debugger::Signal::BKPT);
 
-            LOG("asdf2\n");
             //ksceKernelSetEventFlag(g_gdb_evid, GDB_SIGNAL_BKPT);
 
             return EXCEPTION_NOT_HANDLED;
@@ -191,12 +188,9 @@ extern "C"
             debugger->halt(0x1C);
             //ksceKernelSuspendProcess(target->pid, 0x1C); // TODO: check result
 
-            LOG("asdf\n");
-
             // signal GDB that we have halted
             debugger->signal(Debugger::Signal::BKPT);
 
-            LOG("asdf2\n");
             //ksceKernelSetEventFlag(g_gdb_evid, GDB_SIGNAL_BKPT);
 
             return EXCEPTION_NOT_HANDLED;
