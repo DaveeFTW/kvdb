@@ -87,6 +87,7 @@ set(USER_STUBS
   imports/kvdb_vdb_user_vdb_serial_pipe.S
   imports/kvdb_vdb_user_vdb_send_serial_pipe.S
   imports/kvdb_vdb_user_vdb_recv_serial_pipe.S
+  imports/kvdb_vdb_user_vdb_launch_debug.S
 )
 
 add_custom_target(imports ALL

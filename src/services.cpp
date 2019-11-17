@@ -3,6 +3,7 @@
 #include "launch.h"
 
 #include <psp2kern/kernel/cpu.h>
+#include <psp2kern/kernel/sysmem.h>
 
 extern "C" void vdb_serial_uart() __attribute__((used));
 extern "C" void vdb_serial_pipe() __attribute__((used));
@@ -40,9 +41,22 @@ int vdb_recv_serial_pipe(char *udata, std::size_t max_size, int timeout)
 
 int vdb_launch_debug(const char *executable)
 {
+    constexpr size_t maxStringLength = 255;
+    char path[maxStringLength];
     int state = 0;
     ENTER_SYSCALL(state);
-    auto res = launch::for_debug(executable);
+    
+    auto res = ksceKernelStrncpyUserToKernel(path, reinterpret_cast<std::uintptr_t>(executable), maxStringLength);
+
+    if (res < 0)
+    {
+        EXIT_SYSCALL(state);
+        return res;
+    }
+
+    path[maxStringLength] = '\0';
+
+    res = launch::for_debug(path);
     EXIT_SYSCALL(state);
     return res;
 }
