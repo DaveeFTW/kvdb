@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.3)
 
 set(CMAKE_CXX_COMPILER_FORCED True)
 
-project(kvdb CXX ASM)
-
 if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   if(DEFINED ENV{VITASDK})
     set(CMAKE_TOOLCHAIN_FILE "$ENV{VITASDK}/share/vita.toolchain.cmake" CACHE PATH "toolchain file")
@@ -13,6 +11,8 @@ if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
 endif()
 
 include("$ENV{VITASDK}/share/vita.cmake" REQUIRED)
+
+project(kvdb CXX ASM)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-q -Wall -O3 -std=gnu99 -fno-strict-aliasing")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,-q -Wall -flto -O3 -std=c++11 -static -fno-rtti -fno-exceptions -fno-threadsafe-statics -fno-use-cxa-atexit -nostdlib")
@@ -53,6 +53,9 @@ add_executable(kvdb
 target_link_libraries(kvdb
   c
   gcc
+  SceLibKernel_stub
+  SceKernelThreadMgr_stub
+  SceSysmem_stub
   SceSysmemForDriver_stub
   SceSysmemForKernel_stub
   SceAppMgrForDriver_stub

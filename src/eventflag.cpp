@@ -29,7 +29,7 @@ int EventFlag::waitFor(unsigned int value, bool clear, unsigned int *pattern, un
     }
 
     auto patternInt = 0u;
-    auto res = ksceKernelWaitEventFlag(m_evid, value, flags, &patternInt, timeout);
+    auto res = ksceKernelWaitEventFlag(m_evid, value, flags, &patternInt, reinterpret_cast<SceUInt*>(timeout));
 
     if (res < 0)
     {
